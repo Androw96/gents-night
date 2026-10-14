@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#080808"><title>Gents Night · Szervező</title><link rel="stylesheet" href="./style.css"><link rel="stylesheet" href="./admin.css"><script src="./admin.js" defer></script></head>
+<body><header class="masthead"><a href="./" class="brand">GN<span>SZERVEZŐI FELÜLET</span></a><span class="edition">AUTUMN EDITION <i> / </i> VOL. I</span></header>
+<main class="admin">
+<p class="eyebrow">CSAK SZERVEZŐKNEK</p><h1>Az este vendégei.</h1>
+<form id="login"><label>Admin kulcs<input name="key" type="password" required autocomplete="current-password" spellcheck="false"></label><label class="check"><input name="remember" type="checkbox"><span>Emlékezz rám ezen az eszközön</span></label><button class="primary">BELÉPÉS ↗</button></form>
+<p id="status" class="notice" role="status" aria-live="polite"></p>
+<section id="results" hidden>
+  <div class="stats">
+    <div><span>JÖN</span><strong id="s-yes">0</strong></div>
+    <div><span>WHISKEY</span><strong id="s-whiskey">0</strong></div>
+    <div><span>NEM JÖN</span><strong id="s-no">0</strong></div>
+    <div><span>BEKÜLDÉS ÖSSZESEN</span><strong id="s-all">0</strong></div>
+  </div>
+  <div class="toolbar">
+    <input id="search" type="search" placeholder="Keresés név, e-mail vagy megjegyzés alapján…" aria-label="Keresés">
+    <select id="filter" aria-label="Szűrés"><option value="all">Mindenki</option><option value="yes">Jön</option><option value="whiskey">Whiskey-ben benne van</option><option value="no">Nem jön</option><option value="notes">Van megjegyzése</option></select>
+    <label class="check inline"><input id="history" type="checkbox"><span>Korábbi beküldések is</span></label>
+  </div>
+  <div class="actions"><button id="refresh" class="secondary">FRISSÍTÉS ↻</button><button id="export" class="secondary">CSV LETÖLTÉSE ↓</button><a id="sheet-link" class="secondary" target="_blank" rel="noopener" hidden>GOOGLE TÁBLÁZAT ↗</a><button id="logout" class="secondary">KILÉPÉS</button></div>
+  <p id="count" class="muted"></p>
+  <div class="table-wrap"><table><thead><tr><th>Név</th><th>E-mail</th><th>Részvétel</th><th>Whiskey</th><th>Megjegyzés</th><th>Beérkezés</th></tr></thead><tbody id="rows"></tbody></table></div>
+</section>
+</main>
+<footer><span>GN / SZERVEZŐ</span><span>Az adatok a privát Google Táblázatodban vannak.</span><span>♠ &nbsp; ♦ &nbsp; ♣ &nbsp; ♥</span></footer></body></html>

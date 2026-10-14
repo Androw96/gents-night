@@ -15,7 +15,8 @@ let event;
 const fields = document.querySelector('#form-fields');
 fields.disabled = true;
 fetch('./event.json').then(r => { if (!r.ok) throw Error(); return r.json(); }).then(data => {
-  event = { ...data, registrationOpen: data.registrationOpen && /^[a-zA-Z0-9-]+$/.test(data.formId || '') };
+  const hasEmail = /^[a-zA-Z0-9-]+$/.test(data.formId || ''), hasSheet = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(data.sheetUrl || '');
+  event = { ...data, hasEmail, hasSheet, registrationOpen: data.registrationOpen && (hasEmail || hasSheet) };
   if (event.start) document.querySelector('#event-date').textContent = new Intl.DateTimeFormat('hu-HU', { timeZone: 'Europe/Budapest', year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }).format(new Date(event.start));
   fields.disabled = !event.registrationOpen;
   document.querySelector('#config-notice').textContent = event.registrationOpen ? '' : 'Találkozunk október 23-án, 18:00-kor. A jelentkezés hamarosan megnyílik.';
@@ -34,17 +35,19 @@ form.addEventListener('submit', async e => {
   fields.disabled = true;
   status.textContent = 'Visszajelzés küldése…';
   try {
+    const id = crypto.randomUUID ? crypto.randomUUID() : '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+    const saveToSheet = event.hasSheet ? fetch(event.sheetUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ ...payload, id, _honey: '' }), signal: AbortSignal.timeout(25000) }).then(r => r.json()).then(r => { if (!r.ok) throw Error(r.error); }) : Promise.reject(Error('no sheet'));
     const emailPayload = { name: payload.name, email: payload.email, 'Részvétel': payload.attending === 'yes' ? 'Igen' : 'Nem', 'Közös whiskey': payload.attending === 'yes' && payload.whiskey ? 'Igen, beszállok' : 'Nem', 'Amit tudnod kell': payload.notes || 'Nincs megjegyzés.', 'Esemény': 'Gents Night — 2026. október 23., 18:00', 'Adatkezelési hozzájárulás': 'Igen', _subject: 'Gents Night — új visszajelzés', _template: 'table', _honey: '' };
-    const response = await fetch('https://formsubmit.co/ajax/' + encodeURIComponent(event.formId), { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(emailPayload), signal: AbortSignal.timeout(25000) });
-    const result = await response.json();
-    if (!response.ok || ![true, 'true'].includes(result.success)) throw Error('Nem sikerült elküldeni a visszajelzést. Próbáld újra, vagy keresd közvetlenül a szervezőt.');
+    const sendEmail = event.hasEmail ? fetch('https://formsubmit.co/ajax/' + encodeURIComponent(event.formId), { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(emailPayload), signal: AbortSignal.timeout(25000) }).then(async r => { const result = await r.json(); if (!r.ok || ![true, 'true'].includes(result.success)) throw Error('email'); }) : Promise.reject(Error('no email'));
+    const outcomes = await Promise.allSettled([saveToSheet, sendEmail]);
+    if (outcomes.every(o => o.status === 'rejected')) throw Error('Nem sikerült elküldeni a visszajelzést. Próbáld újra, vagy keresd közvetlenül a szervezőt.');
     form.hidden = true;
     const success = document.querySelector('#success');
     success.hidden = false;
     document.querySelector('#calendar-actions').hidden = payload.attending === 'no';
     if (payload.attending === 'no') document.querySelector('#success-text').textContent = 'Köszönjük, hogy jelezted. Reméljük, legközelebb találkozunk!';
     if (event.start) {
-      const params = new URLSearchParams({ action: 'TEMPLATE', text: event.title, dates: `${calendarDate(event.start)}/${calendarDate(event.end || event.start)}`, location: event.location, details: 'Poker, Blackjack és közös whiskey. A befejezési idő még nincs megadva.', ctz: 'Europe/Budapest' });
+      const params = new URLSearchParams({ action: 'TEMPLATE', text: event.title, dates: `${calendarDate(event.start)}/${calendarDate(event.end || event.start)}`, location: event.location, details: 'Poker, Blackjack és közös whiskey. Behajtás: a Bercsényi liget felőli nagykapun. A befejezési idő még nincs megadva.', ctz: 'Europe/Budapest' });
       document.querySelector('#google-calendar').href = `https://calendar.google.com/calendar/render?${params}`;
     }
     success.focus();
@@ -55,7 +58,7 @@ function escapeICS(value) { return value.replace(/\\/g, '\\\\').replace(/\r?\n/g
 function fold(line) { let result = '', count = 0; for (const char of line) { const length = new TextEncoder().encode(char).length; if (count + length > 75) { result += '\r\n '; count = 1; } result += char; count += length; } return result; }
 document.querySelector('#apple-calendar').addEventListener('click', () => {
   if (!event?.start) return;
-  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Gents Night//Invitation//HU', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT', `UID:gents-night-${calendarDate(event.start)}@invitation.local`, `DTSTAMP:${calendarDate(new Date())}`, `DTSTART:${calendarDate(event.start)}`, ...(event.end ? [`DTEND:${calendarDate(event.end)}`] : []), `SUMMARY:${escapeICS(event.title)}`, `LOCATION:${escapeICS(event.location)}`, 'DESCRIPTION:Poker és Blackjack. A befejezési idő még nincs megadva.', 'END:VEVENT', 'END:VCALENDAR'];
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Gents Night//Invitation//HU', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT', `UID:gents-night-${calendarDate(event.start)}@invitation.local`, `DTSTAMP:${calendarDate(new Date())}`, `DTSTART:${calendarDate(event.start)}`, ...(event.end ? [`DTEND:${calendarDate(event.end)}`] : []), `SUMMARY:${escapeICS(event.title)}`, `LOCATION:${escapeICS(event.location)}`, 'DESCRIPTION:Poker és Blackjack. Behajtás: a Bercsényi liget felőli nagykapun. A befejezési idő még nincs megadva.', 'END:VEVENT', 'END:VCALENDAR'];
   const url = URL.createObjectURL(new Blob([lines.map(fold).join('\r\n') + '\r\n'], { type: 'text/calendar;charset=utf-8' }));
   const link = document.createElement('a'); link.href = url; link.download = 'gents-night.ics'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 });

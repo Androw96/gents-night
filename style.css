@@ -20,4 +20,7 @@ body{background:radial-gradient(ellipse at 50% 22%,#b7933b0c,transparent 55%),#0
 label{font-size:14px}input:not([type=checkbox]),select,textarea{font-size:14px;background:#ffffff03;border-color:#cba95740}.check strong{font-size:14px}.check small,.consent,.optional{font-size:12px}.whiskey{background:#cba95708}.primary,.secondary{font-size:12px}.primary{background:linear-gradient(115deg,#dbc079,#ba9546);color:#0d0b07}.notice{font-size:14px}footer{font-size:10px}footer span:last-child{color:#cfad60}.large-star{color:#b99649}
 @media(max-width:700px){.hero{padding-top:32px}.hero .eyebrow{font-size:10px;letter-spacing:2.3px}.hero h1{font-size:56px}.hero-edition{font-size:26px}.intro{font-size:11px;letter-spacing:1px;margin-bottom:42px}.envelope{max-width:350px;height:220px}.seal{top:95px;left:calc(50% - 39px);width:78px;height:78px}.seal-word{font-size:24px}.seal-detail{font-size:6px}.letter{padding-top:22px}.letter strong{font-size:30px}.edition{font-size:10px;letter-spacing:1.5px}.program article p{font-size:12px}.program h4{font-size:17px}.tiny{font-size:9px}.details strong{font-size:21px}}
 
+.map-link{color:var(--gold);font-size:10px;letter-spacing:2px;text-decoration:none;border-bottom:1px solid var(--line)}
+.map-link:hover{border-color:var(--gold)}
+
 .honeypot{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}

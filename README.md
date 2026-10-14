@@ -1,6 +1,6 @@
 # Gents Night — Autumn Edition
 
-2026. október 23., 18:00 · Kálvária utca 1–3., 105-ös terem.
+2026. október 23., 18:00 · 9025 Győr, Kossuth utca 12. Behajtás: a Bercsényi liget felőli nagykapun.
 
 Önálló statikus GitHub Pages oldal. Publikálás: main ág / gyökér.
 
