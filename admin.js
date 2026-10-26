@@ -27,12 +27,11 @@ async function load() {
 function render() {
   const latest = all.filter(r => !r.old);
   $('#s-yes').textContent = latest.filter(r => r.attending).length;
-  $('#s-whiskey').textContent = latest.filter(r => r.attending && r.whiskey).length;
   $('#s-no').textContent = latest.filter(r => !r.attending).length;
   $('#s-all').textContent = all.length;
   const q = $('#search').value.trim().toLowerCase(), f = $('#filter').value, history = $('#history').checked;
   const shown = all.filter(r => (history || !r.old)
-    && (f === 'all' || (f === 'yes' && r.attending) || (f === 'no' && !r.attending) || (f === 'whiskey' && r.attending && r.whiskey) || (f === 'notes' && r.notes.trim()))
+    && (f === 'all' || (f === 'yes' && r.attending) || (f === 'no' && !r.attending) || (f === 'notes' && r.notes.trim()))
     && (!q || [r.name, r.email, r.notes].some(v => v.toLowerCase().includes(q))));
   const rows = $('#rows'); rows.replaceChildren();
   for (const r of shown) {
@@ -42,7 +41,6 @@ function render() {
     const name = cell('NÉV', r.name); if (r.old) name.append(tag('KORÁBBI', 'old'));
     cell('E-MAIL', r.email);
     cell('RÉSZVÉTEL', tag(r.attending ? 'JÖN' : 'NEM JÖN', r.attending ? 'yes' : ''));
-    cell('WHISKEY', r.attending && r.whiskey ? 'Igen' : '—');
     cell('MEGJEGYZÉS', r.notes || '—', 'notes');
     cell('BEÉRKEZÉS', r.time ? new Date(r.time).toLocaleString('hu-HU', { timeZone: 'Europe/Budapest', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : r.createdAt, 'when');
     rows.append(tr);
@@ -60,7 +58,7 @@ $('#refresh').addEventListener('click', load);
 $('#logout').addEventListener('click', () => { store.clear(); key = ''; all = []; $('#rows').replaceChildren(); $('#results').hidden = true; $('#login').hidden = false; status('Kiléptél.'); });
 $('#export').addEventListener('click', () => {
   const cell = v => { let t = String(v ?? ''); if (/^[\s]*[=+\-@]/.test(t)) t = "'" + t; return '"' + t.replace(/"/g, '""') + '"'; };
-  const rows = [['Név', 'E-mail', 'Részt vesz', 'Whiskey', 'Megjegyzés', 'Beérkezés', 'Legfrissebb válasz'], ...all.map(r => [r.name, r.email, r.attending ? 'Igen' : 'Nem', r.attending && r.whiskey ? 'Igen' : 'Nem', r.notes, r.time ? new Date(r.time).toLocaleString('hu-HU', { timeZone: 'Europe/Budapest' }) : r.createdAt, r.old ? 'Nem' : 'Igen'])];
+  const rows = [['Név', 'E-mail', 'Részt vesz', 'Megjegyzés', 'Beérkezés', 'Legfrissebb válasz'], ...all.map(r => [r.name, r.email, r.attending ? 'Igen' : 'Nem', r.notes, r.time ? new Date(r.time).toLocaleString('hu-HU', { timeZone: 'Europe/Budapest' }) : r.createdAt, r.old ? 'Nem' : 'Igen'])];
   const url = URL.createObjectURL(new Blob(['﻿' + rows.map(row => row.map(cell).join(';')).join('\r\n')], { type: 'text/csv;charset=utf-8' }));
   const a = document.createElement('a'); a.href = url; a.download = 'gents-night-jelentkezesek.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 });

@@ -23,4 +23,11 @@ label{font-size:14px}input:not([type=checkbox]),select,textarea{font-size:14px;b
 .map-link{color:var(--gold);font-size:10px;letter-spacing:2px;text-decoration:none;border-bottom:1px solid var(--line)}
 .map-link:hover{border-color:var(--gold)}
 
+.snow{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:30}
+.flake{position:absolute;top:-30px;color:#f3efe6;text-shadow:0 0 6px #ffffff40;animation:snowfall linear infinite;will-change:transform}
+.flake i{display:block;font-style:normal;animation:snowsway ease-in-out infinite alternate}
+@keyframes snowfall{to{transform:translateY(calc(100vh + 60px))}}
+@keyframes snowsway{from{transform:translateX(-14px)}to{transform:translateX(14px)}}
+@media (prefers-reduced-motion:reduce){.snow{display:none}}
+
 .honeypot{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
