@@ -32,11 +32,11 @@ form.addEventListener('submit', async e => {
   status.textContent = 'Visszajelzés küldése…';
   try {
     const id = crypto.randomUUID ? crypto.randomUUID() : '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
-    const saveToSheet = event.hasSheet ? fetch(event.sheetUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ ...payload, id, _honey: '' }), signal: AbortSignal.timeout(25000) }).then(r => r.json()).then(r => { if (!r.ok) throw Error(r.error); }) : Promise.reject(Error('no sheet'));
+    const saveToSheet = event.hasSheet ? fetch(event.sheetUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ ...payload, id, _honey: '' }), keepalive: true, signal: AbortSignal.timeout(25000) }).then(r => r.json()).then(r => { if (!r.ok) throw Error(r.error); }) : Promise.reject(Error('no sheet'));
     const emailPayload = { name: payload.name, email: payload.email, 'Részvétel': payload.attending === 'yes' ? 'Igen' : 'Nem', 'Amit tudnod kell': payload.notes || 'Nincs megjegyzés.', 'Esemény': 'Gents II — Winter is coming — 2026. november 21., 19:00', 'Adatkezelési hozzájárulás': 'Igen', _subject: 'Gents II — új visszajelzés', _template: 'table', _honey: '' };
-    const sendEmail = event.hasEmail ? fetch('https://formsubmit.co/ajax/' + encodeURIComponent(event.formId), { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(emailPayload), signal: AbortSignal.timeout(25000) }).then(async r => { const result = await r.json(); if (!r.ok || ![true, 'true'].includes(result.success)) throw Error('email'); }) : Promise.reject(Error('no email'));
-    const outcomes = await Promise.allSettled([saveToSheet, sendEmail]);
-    if (outcomes.every(o => o.status === 'rejected')) throw Error('Nem sikerült elküldeni a visszajelzést. Próbáld újra, vagy keresd közvetlenül a szervezőt.');
+    const sendEmail = event.hasEmail ? fetch('https://formsubmit.co/ajax/' + encodeURIComponent(event.formId), { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(emailPayload), keepalive: true, signal: AbortSignal.timeout(25000) }).then(async r => { const result = await r.json(); if (!r.ok || ![true, 'true'].includes(result.success)) throw Error('email'); }) : Promise.reject(Error('no email'));
+    // Az első sikeres mentésnél azonnal visszajelzünk; a másik kérés a háttérben fut tovább.
+    try { await Promise.any([saveToSheet, sendEmail]); } catch { throw Error('Nem sikerült elküldeni a visszajelzést. Próbáld újra, vagy keresd közvetlenül a szervezőt.'); }
     form.hidden = true;
     const success = document.querySelector('#success');
     success.hidden = false;
